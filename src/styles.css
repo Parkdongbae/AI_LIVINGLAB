@@ -1,0 +1,94 @@
+/* Layout: one-column game screen — stat strip, square board, control row. Single committed dark "mine" look. */
+:root {
+  --bg: #0c0a16;
+  --panel: #171429;
+  --line: #2a2548;
+  --fg: #f4f0ff;
+  --muted: #9d95c9;
+  --gold: #ffcf3d;
+  --warn: #ff6b6b;
+  --font-display: "Jua", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+  --font-body: "Gowun Dodum", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+  color-scheme: dark;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+[hidden] { display: none !important; }
+body {
+  background: radial-gradient(120% 80% at 50% 0%, #1d1838 0%, var(--bg) 60%) fixed, var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body);
+  font-size: 14px;
+}
+#root {
+  min-height: 100%;
+  display: flex;
+  justify-content: center;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-bottom, 0px));
+}
+.wrap { width: 100%; max-width: 520px; display: flex; flex-direction: column; gap: 12px; }
+
+header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+h1 {
+  font-family: var(--font-display); font-weight: 400; font-size: 1.9rem; margin: 0; letter-spacing: .02em;
+  background: linear-gradient(180deg, #fff6c4, var(--gold) 55%, #d38a00);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.sub { color: var(--muted); font-size: .9rem; }
+
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.stat { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 8px 12px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.stat span { font-size: .72rem; color: var(--muted); letter-spacing: .08em; }
+.stat b { font-family: var(--font-display); font-weight: 400; font-size: 1.5rem; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.stat.low b { color: var(--warn); }
+.stat.score b { color: var(--gold); }
+
+.board-wrap { position: relative; width: 100%; aspect-ratio: 1; max-width: 100%; }
+canvas {
+  display: block; width: 100%; height: 100%; border-radius: 14px; background: #120f22;
+  box-shadow: 0 0 0 1px var(--line), 0 20px 50px rgba(0, 0, 0, .55);
+  touch-action: none; cursor: pointer; outline: none;
+}
+canvas:focus-visible { box-shadow: 0 0 0 3px var(--gold), 0 20px 50px rgba(0, 0, 0, .55); }
+
+.combo {
+  position: absolute; left: 50%; top: 42%; transform: translate(-50%, -50%) scale(.6);
+  pointer-events: none; opacity: 0; white-space: nowrap;
+  font-family: var(--font-display); font-size: 2.6rem; color: var(--gold);
+  text-shadow: 0 3px 0 #7a4a00, 0 0 24px rgba(255, 207, 61, .6);
+}
+.combo.show { animation: pop .9s ease-out forwards; }
+@keyframes pop {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(.6); }
+  20% { opacity: 1; transform: translate(-50%, -50%) scale(1.15); }
+  70% { opacity: 1; transform: translate(-50%, -60%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -80%) scale(1); }
+}
+
+.controls { display: flex; gap: 8px; flex-wrap: wrap; }
+.controls .grow { flex: 1; }
+button {
+  font-family: var(--font-display); font-size: 1rem; color: var(--fg); background: var(--panel);
+  border: 1px solid var(--line); border-radius: 10px; padding: 10px 16px; cursor: pointer;
+  transition: transform .1s, border-color .15s;
+}
+button:hover { border-color: var(--muted); }
+button:active { transform: translateY(1px); }
+button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+button.primary { background: linear-gradient(180deg, #ffd95a, #e9a400); color: #3a2400; border-color: #c98a00; }
+
+.help { color: var(--muted); font-size: .85rem; line-height: 1.5; margin: 0; }
+
+.over {
+  position: absolute; inset: 0; border-radius: 14px; background: rgba(10, 8, 20, .82); backdrop-filter: blur(3px);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; text-align: center; padding: 16px;
+}
+.over h2 { font-family: var(--font-display); font-weight: 400; font-size: 2.2rem; margin: 0; color: var(--gold); }
+.over p { margin: 0; color: var(--muted); }
+.over .big { font-family: var(--font-display); font-size: 3rem; font-variant-numeric: tabular-nums; }
+
+@media (prefers-reduced-motion: reduce) {
+  .combo.show { animation-duration: .01s; }
+}
