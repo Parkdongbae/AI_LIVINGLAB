@@ -67,7 +67,7 @@ button.primary{background:linear-gradient(180deg,#ffd95a,#e9a400);color:#3a2400;
 <div class="wrap">
   <header>
     <h1>보석 광산</h1>
-    <span class="sub">같은 보석 3개 이상을 한 줄로 맞추세요</span>
+    <span class="sub">같은 보석을 한 줄에 3개, 또는 2×2로 모으세요</span>
   </header>
 
   <div class="stats">
@@ -93,7 +93,7 @@ button.primary{background:linear-gradient(180deg,#ffd95a,#e9a400);color:#3a2400;
     <span class="grow"></span>
     <button class="primary" id="newBtn">새 게임</button>
   </div>
-  <p class="help">보석을 옆 칸으로 끌거나, 두 보석을 차례로 눌러 자리를 바꿉니다. 4개를 맞추면 +40, 5개 이상은 +120 보너스, 연쇄 콤보마다 점수가 배로 올라갑니다.</p>
+  <p class="help">보석을 옆 칸으로 끌거나, 두 보석을 차례로 눌러 자리를 바꿉니다. 같은 보석이 2×2 정사각형으로 모여도 부서집니다. 4개를 맞추면 +40, 5개 이상은 +120 보너스, 연쇄 콤보마다 점수가 배로 올라갑니다.</p>
 </div>
 
 <script>
@@ -214,7 +214,16 @@ function matchAt(t, r, c) {
   let n = 1; for (let k = c - 1; k >= 0 && t[r][k] === v; k--) n++; for (let k = c + 1; k < N && t[r][k] === v; k++) n++;
   if (n >= 3) return true;
   n = 1; for (let k = r - 1; k >= 0 && t[k][c] === v; k--) n++; for (let k = r + 1; k < N && t[k][c] === v; k++) n++;
-  return n >= 3;
+  if (n >= 3) return true;
+  // (r,c)를 포함하는 2×2 네 가지 위치
+  for (const [dr, dc] of [[0, 0], [-1, 0], [0, -1], [-1, -1]]) if (squareAt(t, r + dr, c + dc)) return true;
+  return false;
+}
+// (r,c)를 왼쪽 위로 하는 2×2가 같은 보석인지
+function squareAt(t, r, c) {
+  if (r < 0 || c < 0 || r + 1 >= N || c + 1 >= N) return false;
+  const v = t[r][c];
+  return v >= 0 && t[r][c + 1] === v && t[r + 1][c] === v && t[r + 1][c + 1] === v;
 }
 function findHint() {
   const t = types();
@@ -245,6 +254,13 @@ function findMatches() {
   };
   scan((r, c) => t[r][c], true);
   scan((c, r) => t[r][c], false);
+  // 2×2 정사각형
+  for (let r = 0; r < N - 1; r++) for (let c = 0; c < N - 1; c++) {
+    if (!squareAt(t, r, c)) continue;
+    const grp = [[r, c], [r, c + 1], [r + 1, c], [r + 1, c + 1]];
+    grp.forEach(([a, b]) => cells.add(a * N + b));
+    groups.push(grp);
+  }
   return {cells, groups};
 }
 function randomTypes() {
@@ -255,7 +271,8 @@ function randomTypes() {
       t.push([]);
       for (let c = 0; c < N; c++) {
         let v;
-        do { v = rnd(T); } while ((c >= 2 && t[r][c - 1] === v && t[r][c - 2] === v) || (r >= 2 && t[r - 1][c] === v && t[r - 2][c] === v));
+        do { v = rnd(T); } while ((c >= 2 && t[r][c - 1] === v && t[r][c - 2] === v) || (r >= 2 && t[r - 1][c] === v && t[r - 2][c] === v) ||
+                 (r >= 1 && c >= 1 && t[r - 1][c] === v && t[r][c - 1] === v && t[r - 1][c - 1] === v));
         t[r].push(v);
       }
     }
